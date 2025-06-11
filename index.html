@@ -22,36 +22,43 @@
 <body>
   <h1>Tape Tycoon</h1>
   <div id="stats">
-    Money: $<span id="money">150</span><br>
+    Money: $<span id="money">0.00</span><br>
     Tape: <span id="tape">0</span><br>
-    Tape Material: <span id="material">10</span><br>
-    Price per Tape: $<span id="tapePrice">1.00</span><br>
-    Public Demand: <span id="demand">10%</span> chance/sec
+    Tape Material: <span id="material">500</span><br>
+    Tape Price: $<span id="tapePrice">1.00</span><br>
+    Public Demand: <span id="demand">200%</span><br>
+    Auto Tape Manufacturers: <span id="autoMakers">0</span><br>
   </div>
 
   <hr>
 
   <div>
     <button onclick="makeTape()">Make Tape</button><br>
-    <button onclick="buyMaterial()">Buy 1000 Tape Material ($<span id='matCost'>150</span>)</button><br>
+    <button onclick="buyMaterial()">Buy 500 Tape Material ($<span id='matCost'>100</span>)</button><br>
     Set Tape Price: <input type="number" id="priceInput" value="1.00" min="0.01" step="0.01" onchange="setPrice(this.value)">
   </div>
 
   <hr>
 
   <h3>Upgrades</h3>
-  <button onclick="buyUpgrade('demand')" id="demandUpgrade">Improve Marketing ($50)</button><br>
-  <button onclick="buyUpgrade('material')" id="materialUpgrade">Bulk Material Discount ($75)</button>
+  <button onclick="buyUpgrade('demand')">📢 Improve Marketing (+10% Demand) ($25)</button><br>
+  <button onclick="buyUpgrade('material')">📦 Material Discount (-10% Cost) ($40)</button><br>
+  <button onclick="buyAutoMaker()">🏭 Buy Auto Maker ($<span id="autoMakerCost">20</span>)</button>
 
   <script>
-    let money = 150;
+    let money = 0;
     let tape = 0;
-    let tapeMaterial = 1000;
+    let tapeMaterial = 500;
     let tapePrice = 1.00;
-    let materialCost = 150;
-    let baseDemand = 2; // 10% base demand at $1
+
+    let baseDemand = 2;
     let referencePrice = 1.00;
     let publicDemand = 2;
+
+    let materialCost = 100;
+    let autoMakers = 0;
+    let autoMakerBaseCost = 20;
+    let autoMakerCost = autoMakerBaseCost;
 
     const stats = {
       money: document.getElementById('money'),
@@ -59,7 +66,9 @@
       material: document.getElementById('material'),
       tapePrice: document.getElementById('tapePrice'),
       demand: document.getElementById('demand'),
-      matCost: document.getElementById('matCost')
+      matCost: document.getElementById('matCost'),
+      autoMakers: document.getElementById('autoMakers'),
+      autoMakerCost: document.getElementById('autoMakerCost')
     };
 
     function updateUI() {
@@ -68,7 +77,9 @@
       stats.material.textContent = tapeMaterial;
       stats.tapePrice.textContent = tapePrice.toFixed(2);
       stats.demand.textContent = Math.round(publicDemand * 100) + '%';
-      stats.matCost.textContent = materialCost;
+      stats.matCost.textContent = Math.round(materialCost);
+      stats.autoMakers.textContent = autoMakers;
+      stats.autoMakerCost.textContent = Math.round(autoMakerCost);
     }
 
     function calculateDemand() {
@@ -101,15 +112,32 @@
     }
 
     function buyUpgrade(type) {
-      if (type === 'demand' && money >= 50) {
-        baseDemand += 0.05; // Boost base demand
-        money -= 50;
-        document.getElementById('demandUpgrade').disabled = true;
-        calculateDemand();
-      } else if (type === 'material' && money >= 75) {
-        materialCost = Math.max(5, materialCost - 5);
-        money -= 75;
-        document.getElementById('materialUpgrade').disabled = true;
+      if (type === 'demand' && money >= 25) {
+        baseDemand *= 1.10; // +10% base
+        money -= 25;
+      } else if (type === 'material' && money >= 40) {
+        materialCost *= 0.90; // -10% cost
+        money -= 40;
+      }
+      calculateDemand();
+      updateUI();
+    }
+
+    function buyAutoMaker() {
+      if (money >= autoMakerCost) {
+        money -= autoMakerCost;
+        autoMakers++;
+        autoMakerCost *= 1.10;
+        updateUI();
+      }
+    }
+
+    function autoMakeTapes() {
+      for (let i = 0; i < autoMakers; i++) {
+        if (tapeMaterial > 0) {
+          tapeMaterial--;
+          tape++;
+        }
       }
       updateUI();
     }
@@ -122,9 +150,11 @@
       }
     }
 
+    // Start loops
     calculateDemand();
     updateUI();
-    setInterval(trySellTape, 1000); // attempt sell every second
+    setInterval(trySellTape, 1000);     // Selling loop
+    setInterval(autoMakeTapes, 1000);   // Auto tape production loop
   </script>
 </body>
 </html>
