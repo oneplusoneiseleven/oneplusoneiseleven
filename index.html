@@ -25,8 +25,8 @@
     Money: $<span id="money">100</span><br>
     Tape: <span id="tape">0</span><br>
     Tape Material: <span id="material">10</span><br>
-    Price per Tape: $<span id="tapePrice">1</span><br>
-    Public Demand: <span id="demand">5%</span> chance/sec
+    Price per Tape: $<span id="tapePrice">1.00</span><br>
+    Public Demand: <span id="demand">10%</span> chance/sec
   </div>
 
   <hr>
@@ -34,7 +34,7 @@
   <div>
     <button onclick="makeTape()">Make Tape</button><br>
     <button onclick="buyMaterial()">Buy 10 Tape Material ($<span id='matCost'>10</span>)</button><br>
-    Set Tape Price: <input type="number" id="priceInput" value="1" min="0.01" step="0.01" onchange="setPrice(this.value)">
+    Set Tape Price: <input type="number" id="priceInput" value="1.00" min="0.01" step="0.01" onchange="setPrice(this.value)">
   </div>
 
   <hr>
@@ -47,9 +47,11 @@
     let money = 100;
     let tape = 0;
     let tapeMaterial = 10;
-    let tapePrice = 1;
+    let tapePrice = 1.00;
     let materialCost = 10;
-    let publicDemand = 0.05; // 5%
+    let baseDemand = 0.10; // 10% base demand at $1
+    let referencePrice = 1.00;
+    let publicDemand = 0.10;
 
     const stats = {
       money: document.getElementById('money'),
@@ -67,6 +69,10 @@
       stats.tapePrice.textContent = tapePrice.toFixed(2);
       stats.demand.textContent = Math.round(publicDemand * 100) + '%';
       stats.matCost.textContent = materialCost;
+    }
+
+    function calculateDemand() {
+      publicDemand = Math.max(0.01, baseDemand * (referencePrice / tapePrice));
     }
 
     function makeTape() {
@@ -89,15 +95,17 @@
       let price = parseFloat(value);
       if (!isNaN(price) && price >= 0.01) {
         tapePrice = price;
+        calculateDemand();
         updateUI();
       }
     }
 
     function buyUpgrade(type) {
       if (type === 'demand' && money >= 50) {
-        publicDemand += 0.05; // +5%
+        baseDemand += 0.05; // Boost base demand
         money -= 50;
         document.getElementById('demandUpgrade').disabled = true;
+        calculateDemand();
       } else if (type === 'material' && money >= 75) {
         materialCost = Math.max(5, materialCost - 5);
         money -= 75;
@@ -114,9 +122,9 @@
       }
     }
 
-    setInterval(trySellTape, 1000); // sell check every second
+    calculateDemand();
     updateUI();
+    setInterval(trySellTape, 1000); // attempt sell every second
   </script>
 </body>
 </html>
-
