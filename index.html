@@ -1,1 +1,122 @@
-hi there!!
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tape Tycoon</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: monospace;
+      padding: 20px;
+    }
+    button, input {
+      margin: 5px 0;
+      background: #222;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tape Tycoon</h1>
+  <div id="stats">
+    Money: $<span id="money">100</span><br>
+    Tape: <span id="tape">0</span><br>
+    Tape Material: <span id="material">10</span><br>
+    Price per Tape: $<span id="tapePrice">1</span><br>
+    Public Demand: <span id="demand">5%</span> chance/sec
+  </div>
+
+  <hr>
+
+  <div>
+    <button onclick="makeTape()">Make Tape</button><br>
+    <button onclick="buyMaterial()">Buy 10 Tape Material ($<span id='matCost'>10</span>)</button><br>
+    Set Tape Price: <input type="number" id="priceInput" value="1" min="0.01" step="0.01" onchange="setPrice(this.value)">
+  </div>
+
+  <hr>
+
+  <h3>Upgrades</h3>
+  <button onclick="buyUpgrade('demand')" id="demandUpgrade">Improve Marketing ($50)</button><br>
+  <button onclick="buyUpgrade('material')" id="materialUpgrade">Bulk Material Discount ($75)</button>
+
+  <script>
+    let money = 100;
+    let tape = 0;
+    let tapeMaterial = 10;
+    let tapePrice = 1;
+    let materialCost = 10;
+    let publicDemand = 0.05; // 5%
+
+    const stats = {
+      money: document.getElementById('money'),
+      tape: document.getElementById('tape'),
+      material: document.getElementById('material'),
+      tapePrice: document.getElementById('tapePrice'),
+      demand: document.getElementById('demand'),
+      matCost: document.getElementById('matCost')
+    };
+
+    function updateUI() {
+      stats.money.textContent = money.toFixed(2);
+      stats.tape.textContent = tape;
+      stats.material.textContent = tapeMaterial;
+      stats.tapePrice.textContent = tapePrice.toFixed(2);
+      stats.demand.textContent = Math.round(publicDemand * 100) + '%';
+      stats.matCost.textContent = materialCost;
+    }
+
+    function makeTape() {
+      if (tapeMaterial > 0) {
+        tapeMaterial--;
+        tape++;
+        updateUI();
+      }
+    }
+
+    function buyMaterial() {
+      if (money >= materialCost) {
+        money -= materialCost;
+        tapeMaterial += 10;
+        updateUI();
+      }
+    }
+
+    function setPrice(value) {
+      let price = parseFloat(value);
+      if (!isNaN(price) && price >= 0.01) {
+        tapePrice = price;
+        updateUI();
+      }
+    }
+
+    function buyUpgrade(type) {
+      if (type === 'demand' && money >= 50) {
+        publicDemand += 0.05; // +5%
+        money -= 50;
+        document.getElementById('demandUpgrade').disabled = true;
+      } else if (type === 'material' && money >= 75) {
+        materialCost = Math.max(5, materialCost - 5);
+        money -= 75;
+        document.getElementById('materialUpgrade').disabled = true;
+      }
+      updateUI();
+    }
+
+    function trySellTape() {
+      if (tape > 0 && Math.random() < publicDemand) {
+        tape--;
+        money += tapePrice;
+        updateUI();
+      }
+    }
+
+    setInterval(trySellTape, 1000); // sell check every second
+    updateUI();
+  </script>
+</body>
+</html>
+
