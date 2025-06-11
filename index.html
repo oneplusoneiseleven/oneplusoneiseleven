@@ -1,132 +1,180 @@
-<script>
-  let money = 0;
-  let tape = 0;
-  let tapeMaterial = 500;
-  let tapePrice = 1.00;
-
-  let baseDemand = 2; // 200%
-  let referencePrice = 1.00;
-  let publicDemand = 2;
-
-  let materialCost = 100;
-  let autoMakers = 0;
-  let autoMakerBaseCost = 20;
-  let autoMakerCost = autoMakerBaseCost;
-
-  const stats = {
-    money: document.getElementById('money'),
-    tape: document.getElementById('tape'),
-    material: document.getElementById('material'),
-    tapePrice: document.getElementById('tapePrice'),
-    demand: document.getElementById('demand'),
-    matCost: document.getElementById('matCost'),
-    autoMakers: document.getElementById('autoMakers'),
-    autoMakerCost: document.getElementById('autoMakerCost')
-  };
-
-  function updateUI() {
-    stats.money.textContent = money.toFixed(2);
-    stats.tape.textContent = tape;
-    stats.material.textContent = tapeMaterial;
-    stats.tapePrice.textContent = tapePrice.toFixed(2);
-    stats.demand.textContent = Math.round(publicDemand * 100) + '%';
-    stats.matCost.textContent = Math.round(materialCost);
-    stats.autoMakers.textContent = autoMakers;
-    stats.autoMakerCost.textContent = Math.round(autoMakerCost);
-  }
-
-  function calculateDemand() {
-    publicDemand = Math.max(0.01, baseDemand * (referencePrice / tapePrice));
-  }
-
-  function makeTape() {
-    if (tapeMaterial > 0) {
-      tapeMaterial--;
-      tape++;
-      updateUI();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Tape Tycoon</title>
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: monospace;
+      padding: 20px;
     }
-  }
-
-  function buyMaterial() {
-    if (money >= materialCost) {
-      money -= materialCost;
-      tapeMaterial += 500; // updated for your UI
-      updateUI();
+    button, input {
+      margin: 5px 0;
+      background: #222;
+      color: #fff;
+      border: 1px solid #444;
+      padding: 5px;
     }
-  }
-
-  function setPrice(value) {
-    let price = parseFloat(value);
-    if (!isNaN(price) && price >= 0.01) {
-      tapePrice = price;
-      calculateDemand();
-      updateUI();
+    input[type="number"] {
+      width: 80px;
     }
-  }
+  </style>
+</head>
+<body>
+  <h1>Tape Tycoon</h1>
+  <div id="stats">
+    Money: $<span id="money">0.00</span><br>
+    Tape: <span id="tape">0</span><br>
+    Tape Material: <span id="material">500</span><br>
+    Tape Price: $<span id="tapePrice">1.00</span><br>
+    Public Demand: <span id="demand">200%</span><br>
+    Auto Tape Manufacturers: <span id="autoMakers">0</span><br>
+  </div>
 
-  function buyUpgrade(type) {
-    if (type === 'demand' && money >= 25) {
-      baseDemand *= 1.10;
-      money -= 25;
-    } else if (type === 'material' && money >= 40) {
-      materialCost *= 0.90;
-      money -= 40;
+  <hr>
+
+  <div>
+    <button onclick="makeTape()">Make Tape</button><br>
+    <button onclick="buyMaterial()">Buy 500 Tape Material ($<span id='matCost'>100</span>)</button><br>
+    Set Tape Price: <input type="number" id="priceInput" value="1.00" min="0.01" step="0.01" onchange="setPrice(this.value)">
+  </div>
+
+  <hr>
+
+  <h3>Upgrades</h3>
+  <button onclick="buyUpgrade('demand')">📢 Improve Marketing (+10% Demand) ($25)</button><br>
+  <button onclick="buyUpgrade('material')">📦 Material Discount (-10% Cost) ($40)</button><br>
+  <button onclick="buyAutoMaker()">🏭 Buy Auto Maker ($<span id="autoMakerCost">20</span>)</button>
+
+  <script>
+    let money = 0;
+    let tape = 0;
+    let tapeMaterial = 500;
+    let tapePrice = 1.00;
+
+    let baseDemand = 2; // 200%
+    let referencePrice = 1.00;
+    let publicDemand = 2;
+
+    let materialCost = 100;
+    let autoMakers = 0;
+    let autoMakerBaseCost = 20;
+    let autoMakerCost = autoMakerBaseCost;
+
+    const stats = {
+      money: document.getElementById('money'),
+      tape: document.getElementById('tape'),
+      material: document.getElementById('material'),
+      tapePrice: document.getElementById('tapePrice'),
+      demand: document.getElementById('demand'),
+      matCost: document.getElementById('matCost'),
+      autoMakers: document.getElementById('autoMakers'),
+      autoMakerCost: document.getElementById('autoMakerCost')
+    };
+
+    function updateUI() {
+      stats.money.textContent = money.toFixed(2);
+      stats.tape.textContent = tape;
+      stats.material.textContent = tapeMaterial;
+      stats.tapePrice.textContent = tapePrice.toFixed(2);
+      stats.demand.textContent = Math.round(publicDemand * 100) + '%';
+      stats.matCost.textContent = Math.round(materialCost);
+      stats.autoMakers.textContent = autoMakers;
+      stats.autoMakerCost.textContent = Math.round(autoMakerCost);
     }
-    calculateDemand();
-    updateUI();
-  }
 
-  function buyAutoMaker() {
-    if (money >= autoMakerCost) {
-      money -= autoMakerCost;
-      autoMakers++;
-      autoMakerCost *= 1.10;
-      updateUI();
+    function calculateDemand() {
+      publicDemand = Math.max(0.01, baseDemand * (referencePrice / tapePrice));
     }
-  }
 
-  function autoMakeTapes() {
-    for (let i = 0; i < autoMakers; i++) {
+    function makeTape() {
       if (tapeMaterial > 0) {
         tapeMaterial--;
         tape++;
+        updateUI();
       }
     }
-    updateUI();
-  }
 
-  function trySellTape() {
-    let demand = publicDemand;
-    let guaranteedSales = Math.floor(demand);
-    let fractionalSales = demand - guaranteedSales;
-    let sales = 0;
+    function buyMaterial() {
+      if (money >= materialCost) {
+        money -= materialCost;
+        tapeMaterial += 500;
+        updateUI();
+      }
+    }
 
-    // Base guaranteed sales
-    for (let i = 0; i < guaranteedSales; i++) {
-      if (tape > 0) {
+    function setPrice(value) {
+      let price = parseFloat(value);
+      if (!isNaN(price) && price >= 0.01) {
+        tapePrice = price;
+        calculateDemand();
+        updateUI();
+      }
+    }
+
+    function buyUpgrade(type) {
+      if (type === 'demand' && money >= 25) {
+        baseDemand *= 1.10;
+        money -= 25;
+      } else if (type === 'material' && money >= 40) {
+        materialCost *= 0.90;
+        money -= 40;
+      }
+      calculateDemand();
+      updateUI();
+    }
+
+    function buyAutoMaker() {
+      if (money >= autoMakerCost) {
+        money -= autoMakerCost;
+        autoMakers++;
+        autoMakerCost *= 1.10;
+        updateUI();
+      }
+    }
+
+    function autoMakeTapes() {
+      for (let i = 0; i < autoMakers; i++) {
+        if (tapeMaterial > 0) {
+          tapeMaterial--;
+          tape++;
+        }
+      }
+      updateUI();
+    }
+
+    function trySellTape() {
+      let demand = publicDemand;
+      let guaranteedSales = Math.floor(demand);
+      let chainChance = 0.5;
+      let sales = 0;
+
+      // Guaranteed sales
+      for (let i = 0; i < guaranteedSales; i++) {
+        if (tape > 0) {
+          tape--;
+          money += tapePrice;
+          sales++;
+        }
+      }
+
+      // Cascading chance sales
+      while (Math.random() < chainChance && tape > 0) {
         tape--;
         money += tapePrice;
         sales++;
-      } else {
-        break;
+        chainChance /= 2;
       }
+
+      updateUI();
     }
 
-    // Fractional cascading chance
-    let chainChance = 0.5;
-    while (Math.random() < chainChance && tape > 0) {
-      tape--;
-      money += tapePrice;
-      sales++;
-      chainChance /= 2; // halve chance each step
-    }
-
+    calculateDemand();
     updateUI();
-  }
-
-  // Start game loop
-  calculateDemand();
-  updateUI();
-  setInterval(trySellTape, 1000);     // Selling loop
-  setInterval(autoMakeTapes, 1000);   // Auto tape production loop
-</script>
+    setInterval(trySellTape, 1000);     // Selling loop
+    setInterval(autoMakeTapes, 1000);   // Auto tape production loop
+  </script>
+</body>
+</html>
